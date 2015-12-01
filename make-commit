@@ -7,6 +7,7 @@
 import os
 import sys
 import json
+import base64
 import httplib
 from pprint import pprint
 
@@ -87,8 +88,13 @@ where X.Y.Z is a Markdown version
     HEAD['tree'] = { 'sha' : data['sha'] }
 
     # intermediate step: get the latest content from GitHub and make an updated version
-    data = get_url("https://raw.githubusercontent.com/%s/%s/%s" %(GITHUB_REPO, GITHUB_BRANCH, GITHUB_FILE))
-    travis = data.strip() + "\n  - MARKDOWN=%s\n" % md_ver
+    for obj in data['tree']:
+        if obj['path'] == GITHUB_FILE:
+            data = get_url(obj['url']) # get the blob from the tree
+            data = base64.b64decode(data['content'])
+            break
+
+    travis = data.rstrip() + "\n  - MARKDOWN=%s\n" % md_ver
 
     ####
     #### WARNING WRITE OPERATIONS BELOW
